@@ -1,0 +1,36 @@
+If you have maven and windows, you jsut need to tweak a little bit: the bootstrap script just installs 2 jar files to your local repository.
+
+To run:
+1) bootstrap.sh
+2) run.sh
+
+This will:
+1) Download the geospatial database of IP addresses with lat/lon data
+2) Create a spatial lucene index for searching by a number of fields
+
+It uses low memory as well.  Take a look at src/main/resources/project.properties for all the configuration options you can use.
+
+TODO:
+1) Just return the IDs and retrieve the data from a database
+2) Get this working awesome with Postgresql's http://www.gissearch.com/
+3) Learn more about this stuff
+4) Tune this.  It takes about 5-10 minutes to make on my mac, but to write out 1 GB I know it can go faster.
+
+I made this over the course of a day, so there's still plenty more of what it can do.
+
+It'll create a directory called "index" which will contain all the lucene segment files needed.
+
+
+How it works:
+1) Checks to see if you want to download a new index
+2) Downloads new data if needed
+3) Uses SuperCSV to parse the data and put it in a queue for processing
+4) Spawns off a configurable number of threads and grabs the data from the queue and writes it concurrently to the solr index writer
+5) When the threads are done, the index writer commits the index
+6) Happy geo searching.
+
+
+What this can be used for:
+I guess if you have some social website you can let users know who is close to you.  Kinda like what tweets are going near you at twitter.
+
+ 

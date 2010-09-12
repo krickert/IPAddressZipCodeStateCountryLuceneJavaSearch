@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  http://www.springframework.org/schema/aop
+  http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+  http://www.springframework.org/schema/context
+  http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+  
+    <!-- Property file loader -->
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+      <property name="locations">
+        <list>
+          <value>classpath:project.properties</value>
+        </list>
+      </property>
+    </bean> 
+  
+  <context:annotation-config />
+  <context:component-scan base-package="com.krickert" />
+  <aop:aspectj-autoproxy />
+  
+  <bean id="downloader" class="com.krickert.ipsearch.IpDataDownloader">
+    <constructor-arg value="${ipsearch.url.csv}"/>
+    <constructor-arg value="${ipsearch.file.zip}"/>
+    <constructor-arg value="${ipsearch.should.download}"/>
+  </bean>
+  
+  <bean id="ipSerachIndex" class="com.krickert.ipsearch.IpSearchIndexManager">
+  <constructor-arg ref="downloader"/>
+  <constructor-arg ref="ipIndexReader"/>
+  <constructor-arg ref="indexIpAddress"/>
+  <constructor-arg ref="lastEntryInQueue"/>
+  <constructor-arg ref="queue"/>
+  <constructor-arg ref="writer"/>
+  </bean>
+  
+  <bean id="queue" class="java.util.concurrent.ArrayBlockingQueue">
+    <constructor-arg value="${ipsearch.queue.capacity}"/>
+  </bean>
+  
+  <bean id="ipIndexReader" class="com.krickert.ipsearch.IpDataReaderTask">
+    <constructor-arg value="${ipsearch.file.zip}"/>
+    <constructor-arg value="${ipsearch.fileinzip}"/>
+    <constructor-arg value="${ipsearch.reader.heartbeat}"/>
+    <constructor-arg value="${ipsearch.timeout.queue}"/>
+    <constructor-arg ref="queue"/>
+    <constructor-arg ref="lastEntryInQueue"/>
+  </bean>
+  
+  <bean id="lastEntryInQueue" class="java.util.concurrent.atomic.AtomicBoolean">
+    <constructor-arg value="false"/>
+  </bean>
+  
+  <bean id="writer" class="com.krickert.lucene.IndexWriterManager"/>
+  
+  <bean id="indexIpAddress" class="com.krickert.ipsearch.IndexIpAddressTask">
+    <constructor-arg ref="writer"/>
+    <constructor-arg ref="queue"/>
+    <constructor-arg ref="lastEntryInQueue"/>
+    <constructor-arg value="${ipsearch.poll.timeout}"/>
+    <constructor-arg value="${ipsearch.writer.num.threads}"/>
+  </bean>
+  
+</beans>
