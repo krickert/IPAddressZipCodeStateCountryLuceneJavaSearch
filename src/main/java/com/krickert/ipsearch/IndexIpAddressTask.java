@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.NumericField;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexWriter;
@@ -96,19 +97,25 @@ public class IndexIpAddressTask {
   public void addLocation(IpSearchCityBean bean) throws IOException {
     Document doc = new Document();
     doc.add(new NumericField("ip_start", Field.Store.YES, true).setLongValue(bean.getIpStart()));
+    doc.add(new NumericField("ip_end", Field.Store.YES, true).setLongValue(bean.getIpEnd()));
     doc.add(new NumericField("ip_start_a", Field.Store.NO, true).setLongValue((bean.getIpStart() / 16777216l) % 256));
     doc.add(new NumericField("ip_start_b", Field.Store.NO, true).setLongValue((bean.getIpStart() / 65536) % 256));
     doc.add(new NumericField("ip_start_c", Field.Store.NO, true).setLongValue((bean.getIpStart() / 256) % 256));
     doc.add(new NumericField("ip_start_d", Field.Store.NO, true).setLongValue((bean.getIpStart()) % 256));
+    doc.add(new NumericField("ip_end_a", Field.Store.NO, true).setLongValue((bean.getIpEnd() / 16777216l) % 256));
+    doc.add(new NumericField("ip_end_b", Field.Store.NO, true).setLongValue((bean.getIpEnd() / 65536) % 256));
+    doc.add(new NumericField("ip_end_c", Field.Store.NO, true).setLongValue((bean.getIpEnd() / 256) % 256));
+    doc.add(new NumericField("ip_end_d", Field.Store.NO, true).setLongValue((bean.getIpEnd()) % 256));
     doc.add(new Field(latField, NumericUtils.doubleToPrefixCoded(bean.getLat()), Field.Store.YES, Field.Index.NOT_ANALYZED));
     doc.add(new Field(lngField, NumericUtils.doubleToPrefixCoded(bean.getLon()), Field.Store.YES, Field.Index.NOT_ANALYZED));
-    doc.add(new Field("city", bean.getCity(), Field.Store.YES, Field.Index.ANALYZED));
-    doc.add(new Field("zip_code", bean.getZipCode(), Field.Store.YES, Field.Index.ANALYZED));
-    doc.add(new Field("country_code", bean.getCountryCode(), Field.Store.YES, Field.Index.ANALYZED));
-    doc.add(new Field("country_name", bean.getCountryName(), Field.Store.YES, Field.Index.ANALYZED));
-    doc.add(new Field("metro_code", bean.getMetroCode(), Field.Store.YES, Field.Index.ANALYZED));
-    doc.add(new Field("region_code", bean.getRegionCode(), Field.Store.YES, Field.Index.ANALYZED));
-    doc.add(new Field("region_name", bean.getRegionName(), Field.Store.YES, Field.Index.ANALYZED));
+    // some of these fields have a chance of being null
+    addToDoc(doc, "city", bean.getCity(), Field.Store.YES, Field.Index.ANALYZED);
+    addToDoc(doc, "zip_code", bean.getZipCode(), Field.Store.YES, Field.Index.ANALYZED);
+    addToDoc(doc, "country_code", bean.getCountryCode(), Field.Store.YES, Field.Index.ANALYZED);
+    addToDoc(doc, "country_name", bean.getCountryName(), Field.Store.YES, Field.Index.ANALYZED);
+    addToDoc(doc, "metro_code", bean.getMetroCode(), Field.Store.YES, Field.Index.ANALYZED);
+    addToDoc(doc, "region_code", bean.getRegionCode(), Field.Store.YES, Field.Index.ANALYZED);
+    addToDoc(doc, "region_name", bean.getRegionName(), Field.Store.YES, Field.Index.ANALYZED);
 
     IProjector projector = new SinusoidalProjector();
     int startTier = 5;
@@ -120,6 +127,20 @@ public class IndexIpAddressTask {
       doc.add(new Field(ctp.getTierFieldName(), NumericUtils.doubleToPrefixCoded(boxId), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
     }
     writer.addDocument(doc);
+  }
+
+  private static void addToDoc(Document doc, String field, String value, Field.Store store, Index analyzed) {
+    if (!emptyString(value)) {
+      doc.add(new Field(field, value, store, analyzed));
+    }
+  }
+
+  private static boolean emptyString(String string) {
+    if (string != null && !string.trim().equals("")) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   public void commit() {

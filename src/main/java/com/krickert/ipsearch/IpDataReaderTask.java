@@ -125,32 +125,14 @@ public class IpDataReaderTask {
     public void queueIpEntries() {
       InputStream fileStream = null;
 
-      try {
-        fileStream = new FileInputStream(zipFileName);
-      } catch (FileNotFoundException e) {
-        log.fatal("The file we were supposed to download does not exist: [" + zipFileName + "]", e);
-        throw new IllegalStateException("File check occurred after downloading/starting application and is no longer there.", e);
-      }
+      fileStream = getZipFile(fileStream);
 
-      ZipInputStream zip = new ZipInputStream(fileStream);
-      try {
-        boolean searchingForFile = true;
-        while (searchingForFile) {
-          ZipEntry entry = zip.getNextEntry();
-          if (entry == null) {
-            log.error("The zip file is valid but does not match the ${ipsearch.fileinzip} entry from the project.properties file");
-            zip.close();
-            throw new IllegalArgumentException("Couldn't find file " + fileInZip + " in zip archive " + zipFileName);
-          } else if (entry.getName().equals(fileInZip)) {
-            searchingForFile = false;
-          }
-        }
-      } catch (IOException e) {
-        log.fatal("zip file appears to be empty.", e);
-        throw new IllegalArgumentException("problem opening up the zip file");
-      }
+      ZipInputStream zip = findFileInZip(fileStream);
       Reader fr = null;
       ICsvBeanReader inFile = null;
+      IpSearchCityBean previousRow = null;
+      IpSearchCityBean currentRow;
+
       try {
         fr = new InputStreamReader(zip);
         inFile = new CsvBeanReader(fr, CsvPreference.EXCEL_NORTH_EUROPE_PREFERENCE);
@@ -158,14 +140,26 @@ public class IpDataReaderTask {
         final String[] header = inFile.getCSVHeader(true);
         log.info("The following header was parsed: " + Arrays.toString(header));
 
-        IpSearchCityBean ipRow;
         int counter = 0;
-        while ((ipRow = inFile.read(IpSearchCityBean.class, columnMapping, processors)) != null) {
+        while ((currentRow = inFile.read(IpSearchCityBean.class, columnMapping, processors)) != null) {
           if (counter++ % 50000 == 0 && counter > 0) {
             log.info((counter - 1) + " number of records parsed.");
           }
-          queue.put(ipRow);
+          if (previousRow != null) {
+            previousRow.setIpEnd(currentRow.getIpStart().longValue() - 1l);
+            queue.put(previousRow);
+          }
+          previousRow = currentRow;// KEANU REEVES: Woahhhh
         }
+        previousRow.setIpEnd(256l ^ 4l);// I guess they have the remaining ones?
+                                        // Go germany:
+                                        // IpSearchCityBean
+                                        // [ipStart=3583142456, ipEnd=null,
+                                        // countryCode=DE, countryName=Germany,
+                                        // regionCode=08,
+                                        // regionName=Rheinland-Pfalz,
+                                        // city=Koblenz, zipCode=, lat=50.35,
+                                        // lon=7.6, metroCode=]
       } catch (IOException e) {
         throw new IllegalStateException("The zip file opened but an IO exception was thrown while reading the zip file.", e);
       } catch (InterruptedException e) {
@@ -189,6 +183,37 @@ public class IpDataReaderTask {
       }
       log.info("\n*******************\n** IpData all in queue.  Terminating process\n**\n******************");
 
+    }
+
+    private ZipInputStream findFileInZip(InputStream fileStream) {
+      ZipInputStream zip = new ZipInputStream(fileStream);
+      try {
+        boolean searchingForFile = true;
+        while (searchingForFile) {
+          ZipEntry entry = zip.getNextEntry();
+          if (entry == null) {
+            log.error("The zip file is valid but does not match the ${ipsearch.fileinzip} entry from the project.properties file");
+            zip.close();
+            throw new IllegalArgumentException("Couldn't find file " + fileInZip + " in zip archive " + zipFileName);
+          } else if (entry.getName().equals(fileInZip)) {
+            searchingForFile = false;
+          }
+        }
+      } catch (IOException e) {
+        log.fatal("zip file appears to be empty.", e);
+        throw new IllegalArgumentException("problem opening up the zip file");
+      }
+      return zip;
+    }
+
+    private InputStream getZipFile(InputStream fileStream) {
+      try {
+        fileStream = new FileInputStream(zipFileName);
+      } catch (FileNotFoundException e) {
+        log.fatal("The file we were supposed to download does not exist: [" + zipFileName + "]", e);
+        throw new IllegalStateException("File check occurred after downloading/starting application and is no longer there.", e);
+      }
+      return fileStream;
     }
 
   }

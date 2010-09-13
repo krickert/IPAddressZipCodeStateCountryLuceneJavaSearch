@@ -30,6 +30,7 @@ package com.krickert.ipsearch.city;
 public class IpSearchCityBean {
 
   private Long ipStart;// minlen 1 max len 10 max value 4278190080
+  private Long ipEnd;// the next ip address in a row.
   private String countryCode;// max length 2 required
   private String countryName;// min length 4 max length 32 required
   private String regionCode;// max length 2 optional
@@ -46,6 +47,14 @@ public class IpSearchCityBean {
 
   public void setIpStart(Long ipStart) {
     this.ipStart = ipStart;
+  }
+
+  public Long getIpEnd() {
+    return ipEnd;
+  }
+
+  public void setIpEnd(Long ipEnd) {
+    this.ipEnd = ipEnd;
   }
 
   public String getCountryCode() {
@@ -125,6 +134,8 @@ public class IpSearchCityBean {
     StringBuilder builder = new StringBuilder();
     builder.append("IpSearchCityBean [ipStart=");
     builder.append(ipStart);
+    builder.append(", ipEnd=");
+    builder.append(ipEnd);
     builder.append(", countryCode=");
     builder.append(countryCode);
     builder.append(", countryName=");

@@ -27,9 +27,10 @@ import com.krickert.ipsearch.city.IpSearchCityBean;
 import com.krickert.lucene.IndexWriterManager;
 
 public class IndexIpAddressTaskTest extends TestCase {
-  String[] expectedFields = { "zip_code", "metro_code", "ip_start", "country_name", "city", "region_name", "ip_start_d", "ip_start_c",
-      "ip_start_b", "lat", "ip_start_a", "lon", "_localTier13", "country_code", "_localTier14", "_localTier15", "_localTier10",
-      "_localTier12", "_localTier5", "_localTier11", "region_code", "_localTier6", "_localTier7", "_localTier8", "_localTier9" };
+  String[] expectedFields = { "zip_code", "metro_code", "ip_start", "country_name", "city", "region_name", "ip_end", "ip_start_d",
+      "ip_start_c", "ip_start_b", "lat", "ip_start_a", "lon", "_localTier13", "country_code", "_localTier14", "_localTier15",
+      "_localTier10", "ip_end_d", "_localTier12", "_localTier5", "_localTier11", "region_code", "ip_end_a", "_localTier6", "_localTier7",
+      "_localTier8", "ip_end_c", "_localTier9", "ip_end_b" };
 
   private IndexWriterManager writerManager;
   private Directory directory;
@@ -60,6 +61,7 @@ public class IndexIpAddressTaskTest extends TestCase {
 
   public void testFieldNames() throws IOException {
     int i = 0;
+    System.out.println(reader.getFieldNames(FieldOption.ALL));
     for (String field : reader.getFieldNames(FieldOption.ALL)) {
       assertEquals(expectedFields[i], field);
       i++;

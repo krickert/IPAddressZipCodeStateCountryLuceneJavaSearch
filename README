@@ -2,7 +2,7 @@ If you have maven and windows, you jsut need to tweak a little bit: the bootstra
 
 To run:
 1) bootstrap.sh
-2) run.sh
+2) mvn test
 
 This will:
 1) Download the geospatial database of IP addresses with lat/lon data
