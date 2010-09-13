@@ -94,11 +94,6 @@ Also contains a simple client to search various types of ip searches and return 
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-aop</artifactId>
-      <version>${org.springframework.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
       <version>${org.springframework.version}</version>
     </dependency>
@@ -106,11 +101,6 @@ Also contains a simple client to search various types of ip searches and return 
       <groupId>org.springframework</groupId>
       <artifactId>spring-context-support</artifactId>
       <version>${org.springframework.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjrt</artifactId>
-      <version>1.6.9</version>
     </dependency>
 
     <!-- lucene -->

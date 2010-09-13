@@ -9,8 +9,26 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * simple wget - takes a file and saves it to disk.
+ * 
+ * @author krickert
+ * 
+ */
 public class Wget {
 
+  /**
+   * Performs the wget. This is a simple static function that was made to
+   * simplfy the way to just download a file from the internet to make it as
+   * easy as a browser
+   * 
+   * 
+   * @param saveAsFile
+   *          the file to save as from the internets
+   * @param urlOfFile
+   *          the URL of the file to download
+   * @return the status if it works
+   */
   public static WgetStatus wGet(String saveAsFile, String urlOfFile) {
     InputStream httpIn = null;
     OutputStream fileOutput = null;
