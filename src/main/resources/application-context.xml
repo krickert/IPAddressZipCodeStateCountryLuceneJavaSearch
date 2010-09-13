@@ -28,15 +28,6 @@
     <constructor-arg value="${ipsearch.should.download}"/>
   </bean>
   
-  <bean id="ipSerachIndex" class="com.krickert.ipsearch.IpSearchIndexManager">
-  <constructor-arg ref="downloader"/>
-  <constructor-arg ref="ipIndexReader"/>
-  <constructor-arg ref="indexIpAddress"/>
-  <constructor-arg ref="lastEntryInQueue"/>
-  <constructor-arg ref="queue"/>
-  <constructor-arg ref="writer"/>
-  </bean>
-  
   <bean id="queue" class="java.util.concurrent.ArrayBlockingQueue">
     <constructor-arg value="${ipsearch.queue.capacity}"/>
   </bean>
@@ -44,24 +35,32 @@
   <bean id="ipIndexReader" class="com.krickert.ipsearch.IpDataReaderTask">
     <constructor-arg value="${ipsearch.file.zip}"/>
     <constructor-arg value="${ipsearch.fileinzip}"/>
-    <constructor-arg value="${ipsearch.reader.heartbeat}"/>
-    <constructor-arg value="${ipsearch.timeout.queue}"/>
     <constructor-arg ref="queue"/>
-    <constructor-arg ref="lastEntryInQueue"/>
   </bean>
   
-  <bean id="lastEntryInQueue" class="java.util.concurrent.atomic.AtomicBoolean">
-    <constructor-arg value="false"/>
+  <bean id="writer" class="com.krickert.lucene.IndexWriterManager">
+    <constructor-arg ref="directory"/>
+    <constructor-arg ref="analyzer"/>
+    <constructor-arg value="${ipsearch.writer.num.threads}"/>
+    <constructor-arg value="${ipsearch.writer.queue.size}"/>
+    <constructor-arg value="${ipsearch.writer.ram.buffer.mb}"/>
+    <constructor-arg value="${ipsearch.writer.merge.factor}"/>
   </bean>
   
-  <bean id="writer" class="com.krickert.lucene.IndexWriterManager"/>
+  <bean id="analyzer" class="org.apache.lucene.analysis.WhitespaceAnalyzer"/>
   
   <bean id="indexIpAddress" class="com.krickert.ipsearch.IndexIpAddressTask">
     <constructor-arg ref="writer"/>
     <constructor-arg ref="queue"/>
-    <constructor-arg ref="lastEntryInQueue"/>
     <constructor-arg value="${ipsearch.poll.timeout}"/>
-    <constructor-arg value="${ipsearch.writer.num.threads}"/>
   </bean>
-  
+
+  <bean id="indexDirFile" class="java.io.File">
+    <constructor-arg value="${ipsearch.writer.index.name}"/>
+  </bean>
+
+  <bean id="directory" class="${ipsearch.directory.factory.class}">
+    <constructor-arg ref="indexDirFile"/>
+  </bean>  
+
 </beans>

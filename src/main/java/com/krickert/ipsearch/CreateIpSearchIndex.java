@@ -1,10 +1,9 @@
 package com.krickert.ipsearch;
 
-import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.lucene.index.CorruptIndexException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -12,12 +11,13 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * <b>Simple ip address spatial search indexer.</b> <br>
  * With this application, we will automatically download the latest version of
  * the ip address database and create a searchable index for it. <br>
+ * 
  * The steps to do this are very procedural:
  * <ol>
  * <li>Download the index file
  * <li>Steam the file into the lucene index
  * <li>Close the index and optimize
- * <li>You can now search with the spatial encoding
+ * <li>You can now search with the spatial encoding of IP and location data
  * </ol>
  * 
  * <br>
@@ -40,38 +40,71 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class CreateIpSearchIndex {
   private static final Log log = LogFactory.getLog(CreateIpSearchIndex.class);
+  private final ApplicationContext context;
 
-  /**
-   * This file should just run over ant. It'll pickup the config via spring.
-   * 
-   * @param args
-   */
-  public static void main(String[] args) {
-    log.info("Loading the initial application context");
-    ApplicationContext context = new ClassPathXmlApplicationContext("application-context.xml");
-    log.info("Getting the ipsearch index manager");
-    IpSearchIndexManager manager = context.getBean(IpSearchIndexManager.class);
-    log.info("Downloading the latest index file");
-    manager.downloadFile();
-    // file is downloaded .. lets' start some threads
-    manager.startExecutors();
-    while (manager.isTimeToCommit()) {
-      try {
-        Thread.sleep(10000);
-        log.info("Some task to do");
-      } catch (InterruptedException e) {
-        log.info(e);
-      }
-
-    }
-
-    try {
-      manager.cleanUp();
-    } catch (CorruptIndexException e) {
-      log.fatal("didn't work out..", e);
-    } catch (IOException e) {
-      log.fatal("check the disk.", e);
-    }
+  public CreateIpSearchIndex(final ClassPathXmlApplicationContext classPathXmlApplicationContext) {
+    this.context = classPathXmlApplicationContext;
   }
 
+  /**
+   * 
+   * Creates the application context and starts the indexing
+   * 
+   * @param args
+   *          command line options (ignored)
+   */
+  public static void main(String[] args) {
+    CreateIpSearchIndex cisi = new CreateIpSearchIndex(new ClassPathXmlApplicationContext("application-context.xml"));
+    cisi.start();
+  }
+
+  /**
+   * Runs all the external classes to perform the indexing
+   * 
+   */
+  private void start() {
+    downloadIpDataFiles();
+    // since the parsing occurs in it's own thread, returns the executor so we
+    // can shut it down on completion
+    ExecutorService execution = parseIpData();
+    // time to index
+    IndexIpAddressTask task = createLuceneIndex();
+    log.info("Completed index.  Committing and flushing to disk.");
+    execution.shutdownNow();
+    task.commitAndFinish();
+  }
+
+  /**
+   * Creates the lucene index fron the {@link IndexIpAddressTask}
+   * 
+   * @return the task object so we can shutdown the parsing thread before
+   *         committing
+   */
+  private IndexIpAddressTask createLuceneIndex() {
+    IndexIpAddressTask task = context.getBean(IndexIpAddressTask.class);
+    task.insertIntoIndex();
+    return task;
+  }
+
+  /**
+   * Calls on the {@link IpDataReaderTask} to parse the IP Address data from the
+   * files that were just downloaded and puts them into the lucene index
+   * 
+   * @return the IP data
+   */
+  private ExecutorService parseIpData() {
+    log.info("Getting the data into the queue");
+    IpDataReaderTask dataReader = context.getBean(IpDataReaderTask.class);
+    ExecutorService execution = dataReader.fireAndForget();
+    execution.shutdown();
+    return execution;
+  }
+
+  /**
+   * Calls the {@link IpDataDownloader} to download the GIS IP data files.
+   */
+  private void downloadIpDataFiles() {
+    IpDataDownloader dataDownloader = context.getBean(IpDataDownloader.class);
+    dataDownloader.downloadFile();
+  }
 }

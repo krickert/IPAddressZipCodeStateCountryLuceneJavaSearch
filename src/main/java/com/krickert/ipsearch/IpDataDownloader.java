@@ -62,7 +62,6 @@ public class IpDataDownloader {
       throw new IllegalStateException(error);
     }
     checkIpFileExists();
-
   }
 
   /**

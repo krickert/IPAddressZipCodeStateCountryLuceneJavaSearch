@@ -1,6 +1,5 @@
 package com.krickert.ipsearch;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.FileInputStream;
@@ -13,8 +12,6 @@ import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -79,9 +76,6 @@ public class IpDataReaderTask {
   public final String zipFileName;
   public final String fileInZip;
   public final BlockingQueue<IpSearchCityBean> queue;
-  public final int readerHearbeat;
-  public final int timeOut;
-  public final AtomicBoolean lastEntryInQueue;
 
   /**
    * This is a thread that's meant to be run on a single queue and a single file
@@ -93,35 +87,21 @@ public class IpDataReaderTask {
    *          the ip spatial data
    * @param fileInZip
    *          the path and name of the file in the ZIP file
-   * @param readerHearbeat
-   *          the time, in seconds, that we log actions from the queue
-   * @param timeOut
-   *          the timeout for the queue. Right now when the time out is reached
-   *          it just tries again but soon this will be improved
    * @param queue
    *          the blocking queue that this thread will send all the parsed data
    *          from the file off to
-   * @param lastEntryInQueue
-   *          when the last entry finally gets into the queue, this is set to
-   *          true so other threads can prep up for a lucene commit
    */
-  public IpDataReaderTask(String zipFileName, String fileInZip, int readerHearbeat, int timeOut, BlockingQueue<IpSearchCityBean> queue,
-      AtomicBoolean lastEntryInQueue) {
+  public IpDataReaderTask(String zipFileName, String fileInZip, BlockingQueue<IpSearchCityBean> queue) {
     super();
     this.zipFileName = checkNotNull(zipFileName);
     this.fileInZip = checkNotNull(fileInZip);
     this.queue = checkNotNull(queue);
-    this.readerHearbeat = readerHearbeat;
-    this.timeOut = timeOut;
-    this.lastEntryInQueue = checkNotNull(lastEntryInQueue);
-    // make sure the last entry has not been turned to true yet
-    checkArgument(!lastEntryInQueue.get(), "Reader cannot start when queue already started.  Only one reader thread can be used at a time.");
   }
 
-  public ExecutorService executeCallback() {
+  public ExecutorService fireAndForget() {
     ExecutorService executor = Executors.newSingleThreadExecutor();
-    executor.execute(new IpDataReaderThread());
-    executor.shutdown();
+    IpDataReaderThread runner = new IpDataReaderThread();
+    executor.execute(runner);
     return executor;
   }
 
@@ -175,14 +155,14 @@ public class IpDataReaderTask {
         IpSearchCityBean ipRow;
         int counter = 0;
         while ((ipRow = inFile.read(IpSearchCityBean.class, columnMapping, processors)) != null) {
-          if (counter++ % readerHearbeat == 0 && counter > 0) {
-            log.info(readerHearbeat + " number of records parsed.");
+          if (counter++ % 50000 == 0 && counter > 0) {
+            log.info(counter + " number of records parsed.");
           }
-          queue.offer(ipRow, timeOut, TimeUnit.SECONDS);
+          queue.put(ipRow);
         }
       } catch (IOException e) {
         throw new IllegalStateException("The zip file opened but an IO exception was thrown while reading the zip file.", e);
-      } catch (InterruptedException e) {
+      } catch (Exception e) {
         // from the queue offering
         log.error("queue offering interrupted.");
       } finally {
@@ -200,8 +180,10 @@ public class IpDataReaderTask {
             log.warn("failed to close file reader from zip file.", e);
           }
         }
-        lastEntryInQueue.set(true);
       }
+      log.info("*******************\n** IpData all in queue.  Terminating process\n**\n******************");
+
     }
+
   }
 }
