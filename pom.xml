@@ -21,6 +21,22 @@ Also contains a simple client to search various types of ip searches and return 
     <finalName>tracking-webbapp</finalName>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.krickert.ipsearch.CreateIpSearchIndex</mainClass>
+              <packageName>com.krickert.ipsearch</packageName>
+            </manifest>
+            <manifestEntries>
+              <mode>development</mode>
+              <url>${pom.url}</url>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
@@ -72,7 +88,7 @@ Also contains a simple client to search various types of ip searches and return 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.8.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -116,6 +132,13 @@ Also contains a simple client to search various types of ip searches and return 
     	<version>3.0.2</version>
     	<type>jar</type>
     </dependency>
+    <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-misc</artifactId>
+        <version>3.0.2</version>
+        <type>jar</type>
+    </dependency>
+
 
     <dependency>
       <groupId>supercsv</groupId>
@@ -129,6 +152,14 @@ Also contains a simple client to search various types of ip searches and return 
       <artifactId>spiffy</artifactId>
       <version>0.05</version>
       <type>jar</type>
+    </dependency>
+
+    <!-- Mockito -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.8.5</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <modules>

@@ -64,7 +64,7 @@ public class IpDataReaderTask {
   /* the processors were figured out by analyzing the data within */
   private static final CellProcessor[] processors = { new LMinMax(0l, 4278190080l), new StrMinMax(2l, 2l),
       new Optional(new StrMinMax(4l, 50l)), new StrMinMax(0l, 2l), new StrMinMax(0l, 41l), new StrMinMax(0l, 34l), new StrMinMax(0l, 6l),
-      new ParseDouble(), new ParseDouble(), new StrMinMax(0l, 3l) };
+      new ParseDouble(), new ParseDouble(), null };
 
   /*
    * the column mapping file used to reflect between the processors above and
@@ -103,6 +103,12 @@ public class IpDataReaderTask {
     IpDataReaderThread runner = new IpDataReaderThread();
     executor.execute(runner);
     return executor;
+  }
+
+  public BlockingQueue<IpSearchCityBean> fire() {
+    IpDataReaderThread runner = new IpDataReaderThread();
+    runner.run();
+    return queue;
   }
 
   private class IpDataReaderThread implements Runnable {
@@ -156,15 +162,15 @@ public class IpDataReaderTask {
         int counter = 0;
         while ((ipRow = inFile.read(IpSearchCityBean.class, columnMapping, processors)) != null) {
           if (counter++ % 50000 == 0 && counter > 0) {
-            log.info(counter + " number of records parsed.");
+            log.info((counter - 1) + " number of records parsed.");
           }
           queue.put(ipRow);
         }
       } catch (IOException e) {
         throw new IllegalStateException("The zip file opened but an IO exception was thrown while reading the zip file.", e);
-      } catch (Exception e) {
+      } catch (InterruptedException e) {
         // from the queue offering
-        log.error("queue offering interrupted.");
+        log.error("queue offering interrupted.", e);
       } finally {
         if (inFile != null) {
           try {
@@ -181,7 +187,7 @@ public class IpDataReaderTask {
           }
         }
       }
-      log.info("*******************\n** IpData all in queue.  Terminating process\n**\n******************");
+      log.info("\n*******************\n** IpData all in queue.  Terminating process\n**\n******************");
 
     }
 

@@ -40,7 +40,7 @@ public class IpSearchCityBean {
   private Double lon;// min max required
   private String metroCode;// a length 3 optional
 
-  public long getIpStart() {
+  public Long getIpStart() {
     return ipStart;
   }
 

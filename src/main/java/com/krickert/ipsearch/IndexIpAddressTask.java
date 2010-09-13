@@ -122,6 +122,18 @@ public class IndexIpAddressTask {
     writer.addDocument(doc);
   }
 
+  public void commit() {
+    log.info("committing..");
+    try {
+      writer.commit();
+    } catch (CorruptIndexException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+
+    }
+  }
+
   public void commitAndFinish() {
     log.info("committing..");
     try {
