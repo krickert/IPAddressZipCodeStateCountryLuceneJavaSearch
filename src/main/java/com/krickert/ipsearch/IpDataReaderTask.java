@@ -160,6 +160,7 @@ public class IpDataReaderTask {
                                         // regionName=Rheinland-Pfalz,
                                         // city=Koblenz, zipCode=, lat=50.35,
                                         // lon=7.6, metroCode=]
+        queue.add(previousRow);
       } catch (IOException e) {
         throw new IllegalStateException("The zip file opened but an IO exception was thrown while reading the zip file.", e);
       } catch (InterruptedException e) {
