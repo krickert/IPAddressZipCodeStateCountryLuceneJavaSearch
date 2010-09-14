@@ -151,15 +151,7 @@ public class IpDataReaderTask {
           }
           previousRow = currentRow;// KEANU REEVES: Woahhhh
         }
-        previousRow.setIpEnd(256l ^ 4l);// I guess they have the remaining ones?
-                                        // Go germany:
-                                        // IpSearchCityBean
-                                        // [ipStart=3583142456, ipEnd=null,
-                                        // countryCode=DE, countryName=Germany,
-                                        // regionCode=08,
-                                        // regionName=Rheinland-Pfalz,
-                                        // city=Koblenz, zipCode=, lat=50.35,
-                                        // lon=7.6, metroCode=]
+        previousRow.setIpEnd(256l ^ 4l);
         queue.add(previousRow);
       } catch (IOException e) {
         throw new IllegalStateException("The zip file opened but an IO exception was thrown while reading the zip file.", e);
