@@ -63,7 +63,7 @@ public class IpDataReaderTask {
   private static final Log log = LogFactory.getLog(IpDataReaderTask.class);
   /* the processors were figured out by analyzing the data within */
   private static final CellProcessor[] processors = { new LMinMax(0l, 4278190080l), new StrMinMax(2l, 2l),
-      new Optional(new StrMinMax(4l, 50l)), new StrMinMax(0l, 2l), new StrMinMax(0l, 41l), new StrMinMax(0l, 34l), new StrMinMax(0l, 6l),
+      new Optional(new StrMinMax(4l, 50l)), new StrMinMax(0l, 2l), new StrMinMax(0l, 50l), new StrMinMax(0l, 34l), new StrMinMax(0l, 6l),
       new ParseDouble(), new ParseDouble(), null };
 
   /*
