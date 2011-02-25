@@ -3,12 +3,13 @@ If you have maven and windows, you jsut need to tweak a little bit: the bootstra
 To run:
 1) bootstrap.sh
 2) mvn test
+3) run.sh
 
 This will:
 1) Download the geospatial database of IP addresses with lat/lon data
 2) Create a spatial lucene index for searching by a number of fields
 
-It uses low memory as well.  Take a look at src/main/resources/project.properties for all the configuration options you can use.
+For speed, it uses a lot memory - right now I'm setting it to 4GB but it'll push it up to 3GB.  You can make this A LOT smaller. Take a look at src/main/resources/project.properties for all the configuration options you can use.
 
 TODO:
 1) Just return the IDs and retrieve the data from a database
@@ -16,10 +17,7 @@ TODO:
 3) Learn more about this stuff
 4) Tune this.  It takes about 5-10 minutes to make on my mac, but to write out 1 GB I know it can go faster.
 
-I made this over the course of a day, so there's still plenty more of what it can do.
-
 It'll create a directory called "index" which will contain all the lucene segment files needed.
-
 
 How it works:
 1) Checks to see if you want to download a new index
@@ -31,6 +29,6 @@ How it works:
 
 
 What this can be used for:
-I guess if you have some social website you can let users know who is close to you.  Kinda like what tweets are going near you at twitter.
-
+* Website feature: "who's near me online?"
+* Fraud: don't allow IPs from specific regions 
  

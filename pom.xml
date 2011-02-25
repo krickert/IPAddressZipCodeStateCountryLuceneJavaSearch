@@ -18,7 +18,7 @@ Also contains a simple client to search various types of ip searches and return 
   </properties>
 
   <build>
-    <finalName>tracking-webbapp</finalName>
+    <finalName>ipaddress-search-indexer</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -48,6 +48,7 @@ Also contains a simple client to search various types of ip searches and return 
         </executions>
         <configuration>
           <mainClass>com.krickert.ipsearch.CreateIpSearchIndex</mainClass>
+          <arguments></arguments>
         </configuration>
       </plugin>
       <plugin>
