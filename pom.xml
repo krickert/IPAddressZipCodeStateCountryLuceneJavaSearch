@@ -144,7 +144,7 @@ Also contains a simple client to search various types of ip searches and return 
     <dependency>
       <groupId>supercsv</groupId>
         <artifactId>supercsv</artifactId>
-        <version>1.52</version>
+        <version>1.5.2</version>
         <type>jar</type>
     </dependency>
 
